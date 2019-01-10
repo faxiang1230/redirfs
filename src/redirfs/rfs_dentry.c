@@ -75,6 +75,8 @@ struct rfs_dentry* rfs_dentry_find(const struct dentry *dentry)
         return rdentry;
 #endif /* RFS_PER_OBJECT_OPS */
 
+    if (!dentry)
+        return NULL;
     robject = rfs_get_object_by_system_object(&rfs_dentry_radix_tree, dentry);
     if (!robject)
         return NULL;

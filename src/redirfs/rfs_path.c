@@ -251,13 +251,14 @@ static void rfs_path_rem(struct rfs_path *rpath)
     rfs_path_rem_rroot(rpath);
     rfs_path_list_rem(rpath);
 }
-
+static int hook_numbers = 0;
 static int rfs_path_add_dirs(struct dentry *dentry)
 {
     struct rfs_inode *rinode;
 
     rinode = rfs_inode_find(dentry->d_inode);
     if (rinode) {
+        hook_numbers++;
         rfs_inode_put(rinode);
         return 0;
     }
@@ -265,6 +266,19 @@ static int rfs_path_add_dirs(struct dentry *dentry)
     return rfs_dcache_walk(dentry, rfs_dcache_add_dir, NULL);
 }
 
+static int rfs_path_rem_dirs(struct dentry *dentry)
+{
+    struct rfs_inode *rinode;
+
+    rinode = rfs_inode_find(dentry->d_inode);
+    if (rinode) {
+        rfs_inode_put(rinode);
+        if(!hook_numbers)
+            return rfs_dcache_walk(dentry, rfs_dcache_rem_dir, NULL);
+    }
+
+    return 0;
+}
 static int rfs_path_check_fs(struct file_system_type *type)
 {
     return 0;
@@ -362,6 +376,7 @@ static int rfs_path_rem_include(struct rfs_path *rpath, struct rfs_flt *rflt)
     rpath->rinch = rinch;
     rflt->paths_nr--;
 
+    rfs_path_rem_dirs(rpath->dentry->d_sb->s_root);
     return 0;
 }
 

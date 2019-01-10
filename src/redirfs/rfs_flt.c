@@ -60,7 +60,7 @@ struct rfs_flt *rfs_flt_alloc(struct redirfs_filter_info *flt_info)
     rflt->ops = flt_info->ops;
     atomic_set(&rflt->count, 1);
     spin_lock_init(&rflt->lock);
-    try_module_get(rflt->owner);
+    //try_module_get(rflt->owner);
 
     if (flt_info->active)
         atomic_set(&rflt->active, 1);
@@ -162,6 +162,8 @@ int redirfs_unregister_filter(redirfs_filter filter)
 
     if (!rflt || IS_ERR(rflt))
         return -EINVAL;
+
+    synchronize_rcu();
 
     spin_lock(&rflt->lock);
 

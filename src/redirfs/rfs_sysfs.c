@@ -691,6 +691,14 @@ error:
 
     return err;
 }
+
+void rfs_sysfs_delete(void)
+{
+    sysfs_remove_file(rfs_info_kobj, &stat_attr.attr);
+    kobject_put(rfs_info_kobj);
+    kobject_put(&rfs_flt_kset->kobj);
+    kobject_put(rfs_kobj);
+}
 #endif
 
 int redirfs_create_attribute(redirfs_filter filter,
@@ -795,6 +803,7 @@ int rfs_flt_sysfs_init(struct rfs_flt *rflt)
 
 void rfs_flt_sysfs_exit(struct rfs_flt *rflt)
 {
+    rfs_flt_put(rflt);
     kobject_del(&rflt->kobj);
 }
 

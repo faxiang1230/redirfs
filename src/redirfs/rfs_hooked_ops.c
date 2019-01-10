@@ -74,7 +74,11 @@ rfs_hoperations_set_flags(
     unsigned int old_flags, new_flags;
 
     do {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0))
         old_flags = ACCESS_ONCE(rfs_hoperations->flags);
+#else
+        old_flags = READ_ONCE(rfs_hoperations->flags);
+#endif
         new_flags = (old_flags & ~flags_to_remove) | flags_to_set;
     } while (unlikely(cmpxchg(&rfs_hoperations->flags, old_flags,
                   new_flags) != old_flags));

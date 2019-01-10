@@ -26,10 +26,12 @@
  */
 
 #include <redirfs.h>
+#include <rfs.h>
 #include <linux/slab.h>
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,6,0))
     #include <linux/mount.h>
 #endif
+#include <linux/delay.h>
 
 #ifndef f_dentry
     #define f_dentry    f_path.dentry
@@ -46,6 +48,7 @@
 #define DUMMYFLT_VERSION "0.5"
 
 static redirfs_filter dummyflt;
+struct redirfs_path_info dummyflt_path_info;
 
 static struct redirfs_filter_info dummyflt_info = {
     .owner = THIS_MODULE,
@@ -378,7 +381,6 @@ static int dummyflt_init(void)
 #else
     struct path spath;
 #endif
-    struct redirfs_path_info dummyflt_path_info;
     redirfs_path path;
 
     int err;
@@ -452,6 +454,19 @@ error:
 
 static void __exit dummyflt_exit(void)
 {
+    int i = 0, ret = 0;
+
+    redirfs_path *dummyflt_path = redirfs_get_paths(dummyflt);
+    for (i = 0; i < ((struct rfs_flt*)(dummyflt))->paths_nr; i++) {
+        ret = redirfs_rem_path(dummyflt, dummyflt_path[i]);
+    }
+    redirfs_put_paths(dummyflt_path);
+
+    if(redirfs_unregister_filter(dummyflt) < 0) {
+        mdelay(100);
+        redirfs_unregister_filter(dummyflt);
+    }
+
     redirfs_delete_filter(dummyflt);
 }
 

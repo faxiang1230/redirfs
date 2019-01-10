@@ -38,7 +38,6 @@ static rfs_kmem_cache_t *rfs_file_cache = NULL;
 
 /*---------------------------------------------------------------------------*/
 
-static void rfs_file_del(struct rfs_file *rfile);
 static void rfs_file_free(struct rfs_object *robject);
 
 static struct rfs_object_type rfs_file_type = {
@@ -351,7 +350,7 @@ struct rfs_file *rfs_file_add(struct file *file)
 
 /*---------------------------------------------------------------------------*/
 
-static void rfs_file_del(struct rfs_file *rfile)
+void rfs_file_del(struct rfs_file *rfile)
 {
     rfs_dentry_rem_rfile(rfile);
 

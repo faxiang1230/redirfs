@@ -339,6 +339,36 @@ exit:
     return rv;
 }
 
+static int rfs_dcache_rdentry_destroy(struct dentry *dentry, struct rfs_info *rinfo)
+{
+    struct rfs_dentry *rdentry = NULL;
+    struct rfs_file *rfile = NULL;
+    struct list_head *pos, *tmp;
+    int rv = 0;
+
+    if (!dentry)
+        return 0;
+
+    rdentry = rfs_dentry_find(dentry);
+    if (!rdentry)
+        return 0;
+
+    list_for_each_safe(pos, tmp, &rdentry->rfiles) {
+        rfile = list_entry(pos, struct rfs_file, rdentry_list);
+        if (rfile)
+            rfs_file_del(rfile);
+    }
+
+    if (rdentry->rinode)
+        rfs_dcache_rinode_del(rdentry, rdentry->rinode->inode);
+
+    //put for rfs_dentry_find
+    rfs_dentry_put(rdentry);
+    //put for rfs_dentry_add
+    rfs_dentry_del(rdentry);
+
+    return rv;
+}
 int rfs_dcache_add_dir(struct dentry *dentry, void *data)
 {
     if (!dentry->d_inode)
@@ -348,6 +378,14 @@ int rfs_dcache_add_dir(struct dentry *dentry, void *data)
         return 0;
 
     return rfs_dcache_rdentry_add(dentry, rfs_info_none);
+}
+
+int rfs_dcache_rem_dir(struct dentry *dentry, void *data)
+{
+    if (dentry && !dentry->d_inode)
+        return 0;
+
+    return rfs_dcache_rdentry_destroy(dentry, rfs_info_none);
 }
 
 int rfs_dcache_add(struct dentry *dentry, void *data)
